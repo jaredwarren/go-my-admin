@@ -1,0 +1,130 @@
+<form action="/login" method="POST">
+        <div class="form-group">
+            <div class="row">
+                <div class="col">
+                    <label for="sshHost">SSH Hostname</label>
+                    <input type="text" class="form-control" id="sshHost" aria-describedby="sshHostHelp"
+                        placeholder="127.0.0.1" value="127.0.0.1">
+                </div>
+                <div class="col">
+                    <label for="sshPort">SSH Port</label>
+                    <input type="number" step="1" min="1" placeholder="3306" value="3306" class="form-control"
+                        id="sshPort" aria-describedby="sshPortHelp">
+    
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <small id="sshHostHelp" class="form-text text-muted">Name or IP address of
+                        the server host - and TCP/IP port.</small>
+                </div>
+            </div>
+        </div>
+    
+        <div class="form-group ">
+            <div class="row">
+                <div class="col">
+                    <label for="sshUsername">SSH Username</label>
+                    <input type="text" class="form-control" id="sshUsername" aria-describedby="sshUsernameHelp">
+                    <small id="sshUsernameHelp" class="form-text text-muted">Name of the user
+                        to
+                        connect with.</small>
+                </div>
+            </div>
+        </div>
+    
+        <div class="form-group ">
+            <div class="row">
+                <div class="col">
+                    <label for="sshPasswordPassword">SSH Password</label>
+                    <input type="password" class="form-control" id="sshPassword"
+                        aria-describedby="sshPasswordPasswordHelp">
+                    <small id="sshPasswordPasswordHelp" class="form-text text-muted">The user's
+                        password</small>
+                </div>
+            </div>
+        </div>
+    
+        <div class="form-group ">
+            <div class="row" style="width: 100%;">
+                <div class="col">
+                    <label for="sshKeyFile">SSH Key File</label>
+                </div>
+            </div>
+            <div class="row" style="width: 100%;">
+                <div class="col">
+                    <div class="input-group mb-3">
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="sshKeyFile"
+                                aria-describedby="inputGroupFileAddon01">
+                            <label class="custom-file-label" for="sshKeyFile">Path to SSH private key
+                                file.</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+        <hr>
+    
+        <div class="form-group">
+            <div class="row">
+                <div class="col">
+                    <label for="sshMySQLHost">Hostname</label>
+                    <input type="text" class="form-control" id="sshMySQLHost" aria-describedby="sshMySQLHostHelp"
+                        placeholder="127.0.0.1" value="127.0.0.1">
+                </div>
+                <div class="col">
+                    <label for="sshMySQLPort">Port</label>
+                    <input type="number" step="1" min="1" placeholder="3306" value="3306" class="form-control"
+                        id="sshMySQLPort" aria-describedby="sshMySQLPortHelp">
+    
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <small id="sshMySQLHostHelp" class="form-text text-muted">Name or IP address of
+                        the server host - and TCP/IP port.</small>
+                </div>
+            </div>
+        </div>
+    
+        <div class="form-group ">
+            <div class="row">
+                <div class="col">
+                    <label for="sshMySQLUsername">Username</label>
+                    <input type="text" class="form-control" id="sshMySQLUsername" aria-describedby="sshMySQLUsernameHelp">
+                    <small id="sshMySQLUsernameHelp" class="form-text text-muted">Name of the user
+                        to
+                        connect with.</small>
+                </div>
+            </div>
+        </div>
+    
+        <div class="form-group ">
+            <div class="row">
+                <div class="col">
+                    <label for="sshMySQLPassword">Password</label>
+                    <input type="password" class="form-control" id="sshMySQLPassword"
+                        aria-describedby="sshMySQLPasswordHelp">
+                    <small id="sshMySQLPasswordHelp" class="form-text text-muted">The user's
+                        password</small>
+                </div>
+            </div>
+        </div>
+    
+        <div class="form-group ">
+            <div class="row">
+                <div class="col">
+                    <label for="sshMySQLSchema">Default Schema</label>
+                    <input type="text" class="form-control" id="sshMySQLSchema" aria-describedby="sshMySQLSchemaHelp">
+                    <small id="sshMySQLSchemaHelp" class="form-text text-muted">The schema to use
+                        as
+                        default schema. Leave blank to select it later.</small>
+                </div>
+            </div>
+        </div>
+        <div class="form-group ">
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+    </form>

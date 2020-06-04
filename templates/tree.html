@@ -1,0 +1,264 @@
+{{define "tree"}}
+<style>
+  #dbtree {
+    list-style: none;
+    border: 1px solid black;
+    transition: 0.5s;
+    display: flex;
+    flex-direction: column;
+    min-width: 320px;
+  }
+
+  #dbtree ul,
+  li {
+    list-style: none;
+    padding-inline-start: 2px;
+  }
+
+  .tree-nav {
+    display: flex;
+    flex-direction: row-reverse;
+    background: lightgrey;
+    padding: 2px;
+  }
+
+  #dbcollapse {
+    list-style: none;
+    display: none;
+  }
+
+  .tree-list {
+    overflow: scroll;
+    width: 100%;
+    height: 100%;
+  }
+
+  .tree-db {
+    display: block;
+    margin: 4px;
+  }
+
+  .tree-db:hover {
+    font-weight: bold;
+    background: lightgrey;
+  }
+
+  .tree-db a {
+    color: black;
+    text-decoration: none;
+  }
+
+  .tree-table {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 4px;
+  }
+
+
+  .tree-table a {
+    color: black;
+    text-decoration: none;
+  }
+
+  .tree-table span {
+    display: flex;
+  }
+
+  .tree-table-list {
+    display: block;
+  }
+
+  .tree-table:nth-child(even) {
+    background-color: #efefef;
+  }
+
+  .tree-table .info {
+    visibility: hidden;
+    color: black;
+  }
+
+  .tree-table:hover .info {
+    visibility: visible;
+  }
+
+  .tree-table:hover {
+    font-weight: bold;
+    background: lightgrey;
+  }
+
+  .tree-table{
+    font-size: 12px;
+  }
+
+  .tree-db{
+    font-size: 12px;
+    padding: 2px;
+  }
+</style>
+
+<script>
+  function closeNav() {
+    setCookie('nav', 'closed')
+    document.getElementById('dbtree').style.display = 'none';
+    document.getElementById('dbcollapse').style.display = 'block';
+  }
+  function openNav() {
+    setCookie('nav', 'open')
+    document.getElementById('dbtree').style.display = 'block';
+    document.getElementById('dbcollapse').style.display = 'none';
+  }
+  document.addEventListener("DOMContentLoaded", function () {
+    var nav = getCookie('nav');
+    if (nav && nav == 'closed') {
+      closeNav();
+    }
+
+    var treesearch = getCookie('treesearch');
+    var treesearchdb = getCookie('treesearchdb');
+    if (treesearch && treesearchdb) {
+      var searchEl = document.getElementById("search_" + treesearchdb);
+      if (searchEl != null) {
+        document.getElementById("search_" + treesearchdb).value = treesearch;
+      }
+      filtertable(treesearchdb, treesearch);
+    }
+  });
+</script>
+
+<script>
+  function showHide(ev) {
+    ev = ev || window.event
+    var elem = ev.target.nextElementSibling;
+    if (!elem) return;
+    elem = elem.style;
+    console.log(elem.display);
+    elem.display = (elem.display != 'block') ? 'block' : 'none'
+  }
+
+  var list = [
+    //{{ range $dbname, $schema:= .DBStruct.Schemas }}
+    // {{if eq $dbname $.DBStruct.Using}}
+    // {{ range $table := $schema.Tables }}
+    { "table": "{{$table.Name}}" },
+    // {{end}}
+    // {{end}}
+    // {{end}}
+  ];
+
+  // https://fusejs.io/
+  const options = {
+    shouldSort: false,
+    threshold: 0.4,
+    keys: [
+      "table",
+    ]
+  };
+  const fuse = new Fuse(list, options);
+
+  function filtertable(db, value) {
+    var table = document.getElementById(db + "_tables");
+    if (table == null){
+      return;
+    }
+
+    var items = table.querySelectorAll('li')
+    var fm = fuse.search(value)
+
+    // turn on everything if no results
+    if (fm.length == 0) {
+      for (let j = 0; j < items.length; j++) {
+        const li = items[j];
+        li.style.display = 'flex';
+      }
+      deleteCookie('treesearch');
+      deleteCookie('treesearchdb');
+      return;
+    }
+
+    // turn off everything
+    for (let j = 0; j < items.length; j++) {
+      const li = items[j];
+      li.style.display = 'none';
+      // li.style.color == "black";
+      li.style.border = "none";
+    }
+    // turn on every match
+    for (let i = 0; i < fm.length; i++) {
+      const tm = fm[i].item.table;
+      for (let j = 0; j < items.length; j++) {
+        const li = items[j];
+        if (tm == li.dataset.table) {
+          li.style.display = 'flex';
+          if (li.dataset.table == value) {
+            li.style.border = "1px solid red";
+          }
+        }
+      }
+    }
+
+    setCookie('treesearch', value);
+    setCookie('treesearchdb', db);
+    document.getElementById("clear_" + db).style.visibility = "visible";
+  }
+  function clearSearch(db, event) {
+    document.getElementById("search_" + db).value = "";
+    
+    var items = document.getElementById(db + "_tables").querySelectorAll('li')
+    for (let j = 0; j < items.length; j++) {
+      const li = items[j];
+      li.style.display = 'flex';
+    }
+    document.getElementById("clear_" + db).style.visibility = "hidden";
+    deleteCookie('treesearch');
+    deleteCookie('treesearchdb');
+  }
+</script>
+
+<div id="dbtree">
+  <div class="tree-nav">
+    <button class="button-xsmall pure-button" onclick="closeNav()"><i class="fas fa-chevron-left"></i></button>
+  </div>
+  <div class="tree-list">
+    <ul>
+      {{range $dbname, $schema := .DBStruct.Schemas}}
+      <li>
+        <div class="tree-db">
+          {{if ne $dbname $.DBStruct.Using}}
+          <a href="/{{$dbname}}"><i class="far fa-plus-square"></i>-</i><i class="fas fa-database"></i> {{$dbname}}</a>
+          {{else}}
+          <a href="/"><i class="far fa-minus-square"></i>-</i><i class="fas fa-database"></i> {{$dbname}}</a>
+          {{end}}
+        </div>
+        {{if eq $dbname $.DBStruct.Using}}
+        <ul id="{{$dbname}}_tables" class="tree-table-list">
+          <div style="display: flex; flex-direction: row; align-items: center;">
+            <input id="search_{{$dbname}}" type="text" onkeyup="filtertable('{{$dbname}}', event.target.value)"
+              style="width: 90%; margin:4px; padding:2px;" placeholder="Filter Table">
+            <button id="clear_{{$dbname}}" style="visibility: hidden;" class="button-xsmall pure-button" onclick="clearSearch('{{$dbname}}', event)"><i class="fas fa-times-circle"></i></button>
+          </div>
+          {{ range $table := $schema.Tables }}
+          <li class="tree-table" data-table="{{$table.Name}}">
+            <a href="/{{$.SelectedDB}}/run?query=select%20*%20from%20{{$table.Name}};"> <i class="fas fa-table"></i> {{$table.Name}}</a>
+            <span>
+              <a class="info"
+                href="/{{$.SelectedDB}}/run?query=SHOW INDEXES FROM {{$dbname}}.{{$table.Name}};"><i
+                  class="fas fa-key"></i></a>&nbsp;
+              <a class="info" href="/{{$.SelectedDB}}/run?query=describe {{$table.Name}};"><i
+                  class="fas fa-info-circle"></i></a>
+            </span>
+          </li>
+          {{end}}
+        </ul>
+        {{end}}
+      </li>
+      {{end}}
+    </ul>
+  </div>
+</div>
+<div id="dbcollapse">
+  <div class="tree-nav">
+    <button  class="button-xsmall pure-button" onclick="openNav()"><i class="fas fa-chevron-right"></i></button>
+  </div>
+</div>
+{{end}}

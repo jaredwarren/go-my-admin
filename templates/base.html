@@ -1,0 +1,135 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{template "title" .}}{{if .Title}}{{.Title}}{{end}}</title>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" type="text/css" href="/static/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/pure-min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.0/dist/jquery.min.js"></script>
+
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+
+        nav {
+            display: flex;
+            justify-content: end;
+            margin-bottom: 3px;
+            padding: 4px;
+            background: #333333;
+        }
+
+        nav a {
+            margin: 10px;
+            background: rgb(78, 78, 78);
+            color: whitesmoke;
+        }
+
+        a.button1 {
+            display: inline-block;
+            padding: 0.35em 1.2em;
+            border-top: 0.1em solid rgb(87, 87, 87);
+            margin: 0 0.3em 0.3em 0;
+            border-radius: 5px;
+            box-sizing: border-box;
+            text-decoration: none;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 300;
+            color: whitesmoke;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        a.button1:hover {
+            color: white;
+            background: rgb(105, 105, 105);
+        }
+
+
+        .button-xsmall {
+            font-size: 70%;
+        }
+
+        .button-small {
+            font-size: 85%;
+        }
+        .button-success,
+        .button-error,
+        .button-warning,
+        .button-secondary {
+            color: white;
+            border-radius: 4px;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+        }
+
+        .button-success {
+            background: rgb(28, 184, 65); /* this is a green */
+        }
+        .button-secondary {
+            background: rgb(66, 184, 221); /* this is a light blue */
+        }
+    </style>
+    <script>
+        // var connected = true;
+        // setInterval(function () {
+        //     var http = new XMLHttpRequest();
+        //     http.open("GET", "http://127.0.0.1:8084/health-check", /*async*/ true);
+        //     http.onreadystatechange = function () {
+        //         if (http.readyState == 2 || http.readyState == 3) {
+        //             if (!connected) {
+        //                 window.location.reload();
+        //             }
+        //             connected = true;
+        //         }
+        //     };
+        //     http.onerror = function (e) {
+        //         connected = false;
+        //         e.stopImmediatePropagation();
+        //         return false;
+        //     };
+        //     try {
+        //         http.send(null);
+        //     } catch (exception) {
+        //     }
+        // }, 2000);
+
+        function setCookie(name, value, days) {
+            var expires = "";
+            if (days) {
+                var date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + (value || "") + expires + "; path=/";
+        }
+        function getCookie(name) {
+            var nameEQ = name + "=";
+            var ca = document.cookie.split(';');
+            for (var i = 0; i < ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+        function deleteCookie(name) {
+            document.cookie = name + '=; Max-Age=-99999999;';
+        }
+    </script>
+    {{template "head" .}}
+</head>
+
+<body>
+    {{template "body" .}}
+</body>
+
+</html>
+
+{{end}}

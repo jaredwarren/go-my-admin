@@ -1,0 +1,68 @@
+<form action="/login" method="POST">
+        <div class="form-group">
+            <div class="row">
+                <div class="col">
+                    <label for="standardMySQLHost">Hostname</label>
+                    <input type="text" class="form-control" id="standardMySQLHost" aria-describedby="standardMySQLHostHelp"
+                        placeholder="127.0.0.1" value="127.0.0.1">
+                </div>
+                <div class="col">
+                    <label for="standardMySQLPort">Port</label>
+                    <input type="number" step="1" min="1" placeholder="3306" value="3306" class="form-control"
+                        id="standardMySQLPort" aria-describedby="standardMySQLPortHelp">
+    
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <small id="standardMySQLHostHelp" class="form-text text-muted">Name or IP address of
+                        the server host - and TCP/IP port.</small>
+                </div>
+            </div>
+        </div>
+    
+        <div class="form-group ">
+            <div class="row">
+                <div class="col">
+                    <label for="standardMySQLUsername">Username</label>
+                    <input type="text" class="form-control" id="standardMySQLUsername"
+                        aria-describedby="standardMySQLUsernameHelp">
+                    <small id="standardMySQLUsernameHelp" class="form-text text-muted">Name of the user
+                        to
+                        connect with.</small>
+                </div>
+            </div>
+        </div>
+    
+        <div class="form-group ">
+            <div class="row">
+                <div class="col">
+                    <label for="standardMySQLPassword">Password</label>
+                    <input type="password" class="form-control" id="standardMySQLPassword"
+                        aria-describedby="standardMySQLPasswordHelp">
+                    <small id="standardMySQLPasswordHelp" class="form-text text-muted">The user's
+                        password</small>
+                </div>
+            </div>
+        </div>
+    
+        <div class="form-group ">
+            <div class="row">
+                <div class="col">
+                    <label for="standardMySQLSchema">Default Schema</label>
+                    <input type="text" class="form-control" id="standardMySQLSchema"
+                        aria-describedby="standardMySQLSchemaHelp">
+                    <small id="standardMySQLSchemaHelp" class="form-text text-muted">The schema to use
+                        as
+                        default schema. Leave blank to select it later.</small>
+                </div>
+            </div>
+        </div>
+        <div class="form-group ">
+            <div class="row">
+                <div class="col">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+            </div>
+        </div>
+    </form>

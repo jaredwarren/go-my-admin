@@ -1,0 +1,168 @@
+{{define "query"}}
+<style type="text/css" media="screen">
+  #queryForm {
+    /* margin: 8px; */
+  }
+
+  #editor {
+    /* width: 600px; */
+    width: 100%;
+    height: 250px;
+  }
+
+  textarea[name="query"] {
+    visibility: hidden;
+    display: contents;
+    height: 0;
+  }
+
+  #queryNav {
+    background: lightslategray;
+    /* width: 592px; */
+    width: 100%;
+    padding: 4px;
+  }
+
+  .app_editor_dragbar {
+    background-color: #222222;
+    width: 100%;
+    height: 2px;
+    cursor: row-resize;
+    opacity: 1;
+  }
+</style>
+
+<script>
+  function saveQuery(query) {
+  }
+  window.draggingAceEditor = {};
+  function makeAceEditorResizable(editor) {
+    var id_editor = editor.container.id;
+    var id_dragbar = id_editor + '_dragbar';
+    var id_wrapper = 'queryForm';
+    var wpoffset = 0;
+    window.draggingAceEditor[id_editor] = false;
+    var action_mousedown = function (e) {
+      e.preventDefault();
+      window.draggingAceEditor[id_editor] = true;
+      // Set editor opacity to 0 to make transparent so our wrapper div shows
+      document.getElementById(id_editor).style.opacity = 0;
+      document.addEventListener("mousemove", action_document_mousemove);
+    };
+
+    var action_document_mousemove = function (e) {
+      var _editor = document.getElementById(id_editor);
+      var rect = _editor.getBoundingClientRect();
+      var rsl = {
+        top: rect.top + document.body.scrollTop
+      };
+      var top_offset = rsl.top - wpoffset;
+      var actualY = e.pageY - wpoffset;
+      // editor height
+      var eheight = actualY - top_offset;
+      // Set wrapper height
+      document.getElementById(id_wrapper).style.height = eheight;
+      // Set dragbar opacity while dragging (set to 0 to not show)
+      document.getElementById(id_dragbar).style.opacity = 0.15;
+    };
+
+    document.getElementById(id_dragbar).addEventListener("mousedown", action_mousedown);
+
+    var action_mouseup = function (e) {
+      if (window.draggingAceEditor[id_editor]) {
+        var ctx_editor = document.getElementById(id_editor);
+        var rect = ctx_editor.getBoundingClientRect();
+        var rsl = {
+          top: rect.top + document.body.scrollTop
+        };
+        var actualY = e.pageY - wpoffset;
+        var top_offset = rsl.top - wpoffset;
+        var eheight = actualY - top_offset;
+        document.removeEventListener("mousemove", action_document_mousemove);
+        // Set dragbar opacity back to 1
+        document.getElementById(id_dragbar).style.opacity = 1;
+        // Set height on actual editor element, and opacity back to 1
+        ctx_editor.style.height = eheight + "px";
+        ctx_editor.style.opacity = 1;
+
+        // Trigger ace editor resize()
+        editor.resize();
+        window.draggingAceEditor[id_editor] = false;
+        setCookie('qheight', eheight+"px");
+      }
+    };
+    document.addEventListener("mouseup", action_mouseup);
+  }
+
+  function beatify() {
+    var query = editor.getValue();
+    $.ajax({
+      url: "/beautify?query=" + encodeURI(query),
+      success: function (result) {
+        editor.setValue(result)
+      }
+    });
+  }
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var qheight = getCookie('qheight');
+    if (qheight) {
+      document.getElementById('editor').style.height = qheight;
+    }
+  });
+</script>
+
+<form class="pure-form button-xsmall" id="queryForm" action="{{if .SelectedDB}}/{{.SelectedDB}}{{end}}/run"
+  method="GET">
+  <textarea name="query">{{if .Query}}{{Beautify .Query}}{{end}}</textarea>
+  <div id="editor">{{if .Query}}{{.Query}}{{end}}</div>
+  <div id="queryNav">
+    <button class="button-success pure-button" type="submit"><i class="fas fa-play"></i> Run</button>
+    <input type="number" name="limit" step="1" min="1" value="{{$.Limit}}">
+    <span>
+      Show All:
+      <input type="checkbox" name="show_all">
+    </span>
+    <span style="border-left:1px solid darkgray; margin: 0 4px;">&nbsp;</span>
+    {{if .Query}}
+    {{if CanDescribe .Query}}
+    <a class="pure-button button-success"
+      href="{{if .SelectedDB}}/{{.SelectedDB}}{{end}}/run?query=DESCRIBE {{.Query}}"><i class="fas fa-info"></i>
+      Describe</a>
+    {{end}}
+    {{end}}
+    <!-- <span>TODO: make sync?????</span> -->
+    <span style="border-left:1px solid darkgray; margin: 0 4px;">&nbsp;</span>
+    <button onclick="saveQuery('{{.Query}}')" class="button-secondary pure-button" type="button"><i
+        class="far fa-save"></i> Save</button>
+    <span style="border-left:1px solid darkgray; margin: 0 4px;">&nbsp;</span>
+    <button onclick="beatify(event)" class="button-secondary pure-button" type="button"><i class="fas fa-broom"></i>
+      Clean</button>
+  </div>
+  <div id="editor_dragbar" class="app_editor_dragbar" style="height: 3px;"></div>
+</form>
+<script>
+  var editor = ace.edit("editor");
+  editor.setTheme("ace/theme/monokai");
+  editor.session.setMode("ace/mode/mysql");
+  // sync textarea with editor
+  var textarea = document.querySelector('textarea[name="query"]');
+  editor.getSession().setValue(textarea.value);
+  editor.getSession().on('change', function () {
+    textarea.value = editor.getSession().getValue();
+  });
+  editor.keyBinding.originalOnCommandKey = editor.keyBinding.onCommandKey; // Uggg. save old onCommandKey, so things still work
+  editor.keyBinding.onCommandKey = function (e, hashId, keyCode) {
+    if (e.metaKey && keyCode == 13) {
+      document.getElementById("queryForm").submit();
+      return;
+    }
+    this.originalOnCommandKey(e, hashId, keyCode);
+  };
+  document.addEventListener("DOMContentLoaded", function () {
+    makeAceEditorResizable(editor);
+  });
+</script>
+{{end}}

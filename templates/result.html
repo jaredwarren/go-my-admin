@@ -1,0 +1,218 @@
+{{define "result"}}
+<style>
+  .result-contents {
+    overflow: scroll;
+    white-space: nowrap;
+    flex: 1;
+  }
+
+  .result-contents a {
+    cursor: pointer;
+  }
+
+  .result-contents button {
+    cursor: pointer;
+  }
+
+  table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  td,
+  th {
+    border: 1px solid #efefef;
+    text-align: left;
+    padding: 8px;
+  }
+
+  tr:nth-child(even) {
+    background-color: #efefef;
+  }
+
+  .error {
+    color: red;
+    font-weight: bold;
+  }
+
+  .data-export {
+    visibility: hidden;
+    cursor: pointer;
+  }
+
+  .data-row:hover .data-export {
+    display: block;
+    visibility: visible;
+  }
+
+
+  .data-row td {
+    max-width: 400px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .result-tools {
+    max-height: 20px;
+    display: none;
+    /* for now, until I can figure out what to put here */
+  }
+
+
+  th a {
+    -webkit-appearance: button;
+    -webkit-writing-mode: horizontal-tb !important;
+    text-rendering: auto;
+    color: buttontext;
+    letter-spacing: normal;
+    word-spacing: normal;
+    text-transform: none;
+    text-indent: 0px;
+    text-shadow: none;
+    display: inline-block;
+    text-align: center;
+    align-items: flex-start;
+    cursor: default;
+    background-color: buttonface;
+    box-sizing: border-box;
+    margin: 0em;
+    font: 400 11px system-ui;
+    padding: 1px 7px 2px;
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgb(216, 216, 216) rgb(209, 209, 209) rgb(186, 186, 186);
+    border-image: initial;
+    border-radius: 5px;
+  }
+
+  th {
+    border-bottom: 1px solid darkgray;
+    border-right: 1px solid darkgray !important;
+  }
+
+  tr:hover {
+    background-color: lightgrey;
+  }
+
+  th a,
+  th button {
+    visibility: hidden;
+  }
+
+  th:hover a,
+  th:hover button {
+    visibility: visible;
+  }
+
+  td {
+    padding: 2px  12px !important;
+    /* border-right: 1px solid lightgray !important; */
+  }
+</style>
+<script>
+  // json list of rows
+  var exp = [];
+  //{{$rl := len .Result.Rows}}
+  //{{if gt $rl 0}}
+  //{{range $k, $row := .Result.Rows}}
+  exp["{{$k}}"] = `[{{ range $c:= $.Result.Columns }}
+    '{{$c}}' => {{$value := index $row $c}}{{if isNil $value}}null{{else}}"{{$value}}"{{ end }},{{ end }}
+  ]`;
+  //{{end}}
+  //{{end}}
+
+  function exportRow(key, event) {
+    copy(exp[key]);
+    if (event.target.nodeName == "I") {
+      event.target.parentNode.classList.add("button-success");
+      event.target.classList = ["fas fa-check"]
+      setTimeout(function () {
+        event.target.classList = ["fas fa-file-export"]
+        event.target.parentNode.classList.remove("button-success");
+      }, 1000);
+    } else {
+      event.target.classList.add("button-success");
+      event.target.children[0].classList = ["fas fa-check"]
+      setTimeout(function () {
+        event.target.children[0].classList = ["fas fa-file-export"]
+        event.target.classList.remove("button-success")
+      }, 1000);
+    }
+  }
+
+  function copy(str) {
+    const el = document.createElement('textarea');
+    el.value = str;
+    el.setAttribute('readonly', '');
+    el.style.position = 'absolute';
+    el.style.left = '-9999px';
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+  }
+
+  function search(col) {
+    var searchTerm = prompt("Search " + col, "%%");
+    if (searchTerm != null) {
+      window.location.href = "/{{$.SelectedDB}}/run?query=" + encodeURI("{{$.Query}}") + "&search=" + encodeURI(searchTerm) + "&searchcol=" + col + ";";
+    }
+  }
+</script>
+{{if eq .Error ""}}
+{{if gt $rl 0}}
+<div class="result-contents">
+  <table class="pure-table pure-table-horizontal">
+    <tr>
+      <th style="text-align: center;"><input type="checkbox"></th>
+      <th style="text-align: center;"><i class="fas fa-file-export"></i></th>
+      {{ range $c := $.Result.Columns }}
+      <th style="text-align: center;">{{$c}}
+        <a class="button-xsmall pure-button button-success"
+          href="/{{$.SelectedDB}}/run?query={{$.Query}}&sortdir=ASC&sortname={{$c}};"><i
+            class="fas fa-sort-amount-up-alt"></i></a>
+        <a class="button-xsmall pure-button button-success"
+          href="/{{$.SelectedDB}}/run?query={{$.Query}}&sortdir=DESC&sortname={{$c}};"> <i
+            class="fas fa-sort-amount-down"></i></a>
+        <button class="button-xsmall pure-button button-secondary" onclick="search('{{$c}}')"><i
+            class="fas fa-search"></i></button>
+      </th>
+      {{ end }}
+    </tr>
+    {{ range $k, $row := .Result.Rows }}
+    <tr class="data-row">
+      <td style="text-align: center;">
+        <input type="checkbox" name="vehicle3" value="Boat">
+      </td>
+      <td style="text-align: center;">
+        <button class="button-xsmall pure-button data-export" onclick="exportRow('{{$k}}', event)"><i
+            class="fas fa-file-export"></i></button>
+      </td>
+      {{ range $c := $.Result.Columns }}
+      {{$value := index $row $c}}
+      {{if isNil $value}}
+        <td style="text-align: center;"><span style="color:grey"><i>NULL</i></span></td>
+      {{else}}
+        {{if $value}}
+          <td>{{$value}}</td>
+        {{else}}
+          <td style="text-align: center;"><span style="color:grey"><i>&mdash;</i></span></td>
+        {{end}}
+      {{end}}
+    {{ end }}
+    </tr>
+    {{ end }}
+  </table>
+</div>
+<div class="result-tools">
+  <button class="button-xsmall pure-button data-export"><i class="fas fa-file-export"></i></button>
+</div>
+{{else}}
+<div>No Results</div>
+{{end}}
+{{else}}
+<div class="error">{{.Error}}</div>
+{{end}}
+
+{{end}}
