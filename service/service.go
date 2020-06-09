@@ -8,10 +8,9 @@ import (
 	"strconv"
 	"strings"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	"github.com/jaredwarren/app"
-	"github.com/jaredwarren/myadmin/db"
+	"github.com/jaredwarren/db"
 )
 
 // Controller implements the home resource.
