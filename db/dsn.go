@@ -7,11 +7,12 @@ import (
 
 // DSN ...
 type DSN struct {
-	Name   string
-	Scheme string
-	User   *Userinfo // username and password information
-	Host   *Host     // host or host:port
-	Path   string    // path (relative paths may omit leading slash)
+	Name   string    `json:"Name,omitempty"`
+	Scheme string    `json:"Scheme,omitempty"`
+	User   *Userinfo `json:"User,omitempty"` // username and password information
+	Host   *Host     `json:"Host,omitempty"` // host or host:port
+	Path   string    `json:"Path,omitempty"` // path (relative paths may omit leading slash)
+	SSH    *SSHConn  `json:"SSH,omitempty"`
 }
 
 // String reassembles the URL into a valid URL string.
@@ -44,7 +45,7 @@ func (u *DSN) String() string {
 	return fmt.Sprintf("%s@%s(%s)/%s", u.User.String(), u.Scheme, u.Host.String(), u.Path)
 }
 
-// Key ...
+// Key generate a unique id to
 func (u *DSN) Key() string {
 	keyData := fmt.Sprintf("%s@%s/%s", u.User.Username, u.Host.String(), u.Path)
 	return base64.StdEncoding.EncodeToString([]byte(keyData))
@@ -55,8 +56,8 @@ func (u *DSN) Key() string {
 // to have a username set (potentially empty, as allowed by RFC 2396),
 // and optionally a password.
 type Userinfo struct {
-	Username    string
-	Password    string
+	Username    string `json:"Username,omitempty"`
+	Password    string `json:"Password,omitempty"`
 	passwordSet bool
 }
 
@@ -68,8 +69,8 @@ func (u *Userinfo) String() string {
 
 // Host ...
 type Host struct {
-	Host string
-	Port string
+	Host string `json:"Host,omitempty"`
+	Port string `json:"Port,omitempty"`
 }
 
 // String returns the encoded userinfo information in the standard form

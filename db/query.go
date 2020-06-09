@@ -6,8 +6,7 @@ import (
 	"reflect"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
-	sqlfmt "github.com/kanmu/go-sqlfmt/sqlfmt"
+	"github.com/kanmu/go-sqlfmt/sqlfmt"
 	"github.com/xwb1989/sqlparser"
 )
 

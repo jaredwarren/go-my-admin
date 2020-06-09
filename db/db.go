@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/go-sql-driver/mysql"
 )
 
 // Database ...
@@ -76,6 +76,24 @@ func (d *Database) Query(query string, args ...interface{}) (*Result, error) {
 // Exec execute query
 func (d *Database) Exec(q string) (sql.Result, error) {
 	return d.Connection.Exec(q)
+}
+
+// TestDbConnection super simple db connection test
+func (d *Database) TestDbConnection() error {
+	rows, err := d.Connection.Query("SELECT 1;")
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var v string
+		err := rows.Scan(&v)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	return fmt.Errorf("no rows returned, how is this even possible")
 }
 
 // populateStructure populate database structure (db -> schema -> tabel)
@@ -206,15 +224,36 @@ func New(username, password, host, port, path string) (*Database, error) {
 
 // Connect to db
 func Connect(dsn *DSN) (*Database, error) {
-	// check connection
+	// Connect to ssh
+	if dsn.SSH != nil {
+		err := dsn.SSH.Connect()
+		if err != nil {
+			return nil, err
+		}
+
+		// Register ssh with mysql so mysql knows to connect through ssh
+		mysql.RegisterDial("mysql+tcp", dsn.SSH.DialFunc)
+		dsn.Scheme = "mysql+tcp"
+	}
+
+	// Connect to db
 	dbc, err := sql.Open("mysql", dsn.String())
 	if err != nil {
 		return nil, err
 	}
+
 	db := &Database{
 		DSN:        dsn,
 		Connection: dbc,
 	}
+
+	// Test Connection
+	err = db.TestDbConnection()
+	if err != nil {
+		return db, err
+	}
+
+	// poplate info now
 	db.populateStructure()
 	return db, nil
 }

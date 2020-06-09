@@ -29,7 +29,14 @@ func Register(wapp *app.Service) *Controller {
 	}
 
 	m := wapp.Mux
-	m.HandleFunc("/", c.RunQuery)
+	// m.HandleFunc("/", c.RunQuery)
+	m.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if c.db == nil {
+			loginError(w, r, fmt.Errorf("Please Login"))
+			return
+		}
+		http.Redirect(w, r, "/mysql", 301)
+	})
 	m.HandleFunc("/close", c.Close)
 	m.HandleFunc("/run", c.RunQuery).Methods("POST")
 	m.HandleFunc("/run", c.RunQuery).Methods("GET")
@@ -52,7 +59,6 @@ func Register(wapp *app.Service) *Controller {
 
 	m.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// fmt.Println("~~~~~~~~", r.URL, r.Method, "~~~~~~~~")
 			next.ServeHTTP(w, r)
 		})
 	})
@@ -77,7 +83,7 @@ func (c *Controller) Close(w http.ResponseWriter, r *http.Request) {
 	c.wapp.Exit <- nil
 }
 
-// Login show current invoice
+// Login ...
 func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 	connections, err := db.FetchAll()
 	templates := template.Must(template.ParseFiles("templates/login.html", "templates/base.html"))
@@ -94,7 +100,7 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// LoginHandler show current invoice
+// LoginHandler ...
 func (c *Controller) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("LoginHandler -> ")
 	err := r.ParseForm()
@@ -109,6 +115,7 @@ func (c *Controller) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	key, ok := vars["key"]
 	if ok {
+		fmt.Println("  - found:", key)
 		dbc, err = db.Fetch(key)
 		if err != nil {
 			fmt.Println("  - [E]", err)
@@ -116,6 +123,7 @@ func (c *Controller) LoginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
+		fmt.Println("  - new:", key)
 		// Create New db
 		dbc, err = db.New(r.Form.Get("username"), r.Form.Get("password"), r.Form.Get("host"), r.Form.Get("port"), r.Form.Get("path"))
 		if err != nil {
@@ -123,16 +131,19 @@ func (c *Controller) LoginHandler(w http.ResponseWriter, r *http.Request) {
 			loginError(w, r, err)
 			return
 		}
-		// TODO: save connection (auto?)
 	}
-
 	c.db = dbc
 
-	// ref := r.URL.Query().Get("r")
-	// fmt.Println(ref)
+	// TODO: test connection here, if fails, go back to login?
+	err = dbc.TestDbConnection()
+	if err != nil {
+		fmt.Println("  - [E]", err)
+		loginError(w, r, err)
+		return
+	}
 
 	fmt.Println("  - done")
-	http.Redirect(w, r, "/", 301)
+	http.Redirect(w, r, "/mysql", 301)
 }
 
 func loginError(w http.ResponseWriter, r *http.Request, err error) {
@@ -150,7 +161,7 @@ func loginError(w http.ResponseWriter, r *http.Request, err error) {
 	})
 }
 
-// Logout show current invoice
+// Logout ...
 func (c *Controller) Logout(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(" - close db")
 	if c.db != nil {
@@ -161,7 +172,7 @@ func (c *Controller) Logout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/login", 301)
 }
 
-// RunQuery show current invoice
+// RunQuery ...
 func (c *Controller) RunQuery(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("RunQuery:")
 
@@ -287,10 +298,11 @@ func (c *Controller) RunQuery(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// SelectDB show current invoice
+// SelectDB ...
 func (c *Controller) SelectDB(w http.ResponseWriter, r *http.Request) {
+	fmt.Print("SelectDB:")
 	if c.db == nil {
-		fmt.Println("SelectDB:  - no db -> login")
+		fmt.Println("  - no db -> login")
 		http.Redirect(w, r, "/login", 301)
 		return
 	}
@@ -301,13 +313,13 @@ func (c *Controller) SelectDB(w http.ResponseWriter, r *http.Request) {
 	if db == "" || db == "favicon.ico" {
 		return
 	}
-	fmt.Println("SelectDB:", db)
+	fmt.Println("", db)
 
 	query := fmt.Sprintf("select * from INFORMATION_SCHEMA.tables where TABLE_SCHEMA = '%s' order by TABLE_NAME asc", db)
 	http.Redirect(w, r, fmt.Sprintf("/%s/run?query=%s", db, query), 301)
 }
 
-// Struct show current invoice
+// Struct ...
 func (c *Controller) Struct(w http.ResponseWriter, r *http.Request) {
 	templates := template.Must(template.ParseFiles("templates/struct.html", "templates/base.html"))
 	templates.ExecuteTemplate(w, "base", &struct {
